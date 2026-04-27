@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section py-3 px-4 mb-4">
+    <h2>Dashboard - Generate a Blog</h2>
+    <form id="generateBlogForm">
+        <div class="mb-3">
+            <label for="topic" class="form-label">Blog Topic</label>
+            <input type="text" class="form-control" id="topic" name="topic" required placeholder="e.g. Gradient Boosting">
+        </div>
+        <button type="submit" class="btn btn-primary" id="generateBtn">Generate Blog</button>
+    </form>
+    
+    <div id="loadingIndicator" class="d-none mt-4 text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Generating your blog. This may take a few minutes...</p>
+    </div>
+</div>
+
+<div id="previewSection" class="content-section py-3 px-4 mb-4 d-none">
+    <h3>Preview</h3>
+    <hr>
+    <div id="markdownPreview" class="article-content"></div>
+    <div class="mt-4 text-end">
+        <button id="postBlogBtn" class="btn btn-success">Post Blog</button>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script type="module">
+    import { getToken } from '/static/js/auth.js';
+    import { showModal, getErrorMessage } from '/static/js/utils.js';
+
+    const generateForm = document.getElementById("generateBlogForm");
+    const generateBtn = document.getElementById("generateBtn");
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    const previewSection = document.getElementById("previewSection");
+    const markdownPreview = document.getElementById("markdownPreview");
+    const postBlogBtn = document.getElementById("postBlogBtn");
+    
+    let currentBlogId = null;
+
+    generateForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        
+        const token = getToken();
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const formData = new FormData(generateForm);
+        const requestData = { topic: formData.get("topic") };
+
+        generateBtn.disabled = true;
+        loadingIndicator.classList.remove("d-none");
+        previewSection.classList.add("d-none");
+
+        try {
+            const response = await fetch("/api/blogs/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                currentBlogId = data.blog_id;
+                
+                let content = data.content;
+                markdownPreview.innerHTML = marked.parse(content);
+                previewSection.classList.remove("d-none");
+            } else {
+                const error = await response.json();
+                document.getElementById("errorMessage").textContent = getErrorMessage(error);
+                showModal("errorModal");
+            }
+        } catch (error) {
+            document.getElementById("errorMessage").textContent = "Network error. Please check your connection and try again.";
+            showModal("errorModal");
+        } finally {
+            generateBtn.disabled = false;
+            loadingIndicator.classList.add("d-none");
+        }
+    });
+
+    postBlogBtn.addEventListener("click", async () => {
+        if (!currentBlogId) return;
+        
+        const token = getToken();
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        postBlogBtn.disabled = true;
+        postBlogBtn.textContent = "Publishing...";
+
+        try {
+            const response = await fetch(`/api/blogs/${currentBlogId}/publish`, {
+                method: "POST",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+
+            if (response.ok) {
+                document.getElementById("successMessage").textContent = `Blog published successfully!`;
+                showModal("successModal");
+                
+                document.getElementById("successModal").addEventListener("hidden.bs.modal", () => {
+                    window.location.href = '/';
+                }, { once: true });
+            } else {
+                const error = await response.json();
+                document.getElementById("errorMessage").textContent = getErrorMessage(error);
+                showModal("errorModal");
+                postBlogBtn.disabled = false;
+                postBlogBtn.textContent = "Post Blog";
+            }
+        } catch (error) {
+            document.getElementById("errorMessage").textContent = "Network error.";
+            showModal("errorModal");
+            postBlogBtn.disabled = false;
+            postBlogBtn.textContent = "Post Blog";
+        }
+    });
+</script>
+{% endblock scripts %}

@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h1 class="mb-4">Posts by {{ user.username }}</h1>
+  {% for post in posts %}
+    <article class="py-4 border-bottom" style="border-color: var(--color-border-light) !important;">
+      <div class="d-flex align-items-center mb-2 gap-2">
+          <img class="rounded-circle" src="{{ post.author.image_path }}" width="24" height="24" loading="lazy">
+          <a class="text-decoration-none fw-bold" style="color: var(--color-text-primary); font-size: 0.9rem;" href="{{ url_for('user_posts', user_id=post.author.id) }}">
+              {{ post.author.username }}
+          </a>
+      </div>
+      
+      <div class="d-flex justify-content-between gap-4">
+          <div class="flex-grow-1" style="min-width: 0;">
+              <h2 class="mb-2" style="font-size: 1.4rem; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em;">
+                  <a class="text-decoration-none" style="color: var(--color-text-heading);" href="{{ url_for('post_page', post_id=post.id) }}">
+                      {{ post.title }}
+                  </a>
+              </h2>
+              <div class="text-muted d-none d-md-block mb-3 markdown-content markdown-summary" style="font-family: 'Lora', Georgia, serif; font-size: 1rem; line-height: 1.5;" data-markdown="{{ post.description }}"></div>
+              
+              <div class="d-flex align-items-center gap-2" style="color: #6b6b6b; font-size: 0.85rem;">
+                  <span>{{ post.created_at.strftime("%b %d") }}</span>
+              </div>
+          </div>
+          
+          {% if post.parsed_images %}
+          <div class="flex-shrink-0 mt-1">
+              <img src="/images/{{ post.parsed_images[0] }}" class="rounded" style="width: 112px; height: 112px; object-fit: cover;">
+          </div>
+          {% endif %}
+      </div>
+    </article>
+  {% else %}
+    <p class="text-body-secondary">No posts by this user yet.</p>
+  {% endfor %}
+{% endblock content %}
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          document.querySelectorAll('.markdown-content').forEach(el => {
+              el.innerHTML = marked.parse(el.getAttribute('data-markdown') || el.textContent);
+          });
+      });
+    </script>
+{% endblock scripts %}
