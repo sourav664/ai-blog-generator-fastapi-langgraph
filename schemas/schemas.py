@@ -85,6 +85,10 @@ class ChangePasswordRequest(BaseModel):
 class BlogGenerateRequest(BaseModel):
     topic: str = Field(..., min_length=1)
 
+class BlogUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    content: str | None = Field(default=None, min_length=1)
+
 class GeneratedBlogResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

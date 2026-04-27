@@ -11,7 +11,7 @@ from schemas import models
 from auth import CurrentUser
 from config import settings
 from database import get_db
-from schemas import BlogGenerateRequest, GeneratedBlogResponse, PaginatedBlogsResponse
+from schemas import BlogGenerateRequest, GeneratedBlogResponse, PaginatedBlogsResponse, BlogUpdateRequest
 from schemas.models import GeneratedBlog
 
 # This is an async wrapper for the synchronous langgraph run
@@ -79,6 +79,50 @@ async def publish_blog(
     await db.commit()
     await db.refresh(blog, attribute_names=["author"])
     return blog
+
+@router.put("/{blog_id}", response_model=GeneratedBlogResponse)
+async def update_blog(
+    blog_id: str,
+    blog_data: BlogUpdateRequest,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    result = await db.execute(select(models.GeneratedBlog).where(models.GeneratedBlog.blog_id == blog_id))
+    blog = result.scalars().first()
+    
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+        
+    if blog.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this blog")
+        
+    if blog_data.title is not None:
+        blog.title = blog_data.title
+    if blog_data.content is not None:
+        blog.content = blog_data.content
+        
+    await db.commit()
+    await db.refresh(blog, attribute_names=["author"])
+    return blog
+
+@router.delete("/{blog_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_blog(
+    blog_id: str,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    result = await db.execute(select(models.GeneratedBlog).where(models.GeneratedBlog.blog_id == blog_id))
+    blog = result.scalars().first()
+    
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+        
+    if blog.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this blog")
+        
+    await db.delete(blog)
+    await db.commit()
+
 
 @router.get("", response_model=PaginatedBlogsResponse)
 async def get_my_blogs(

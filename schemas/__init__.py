@@ -15,5 +15,6 @@ from .schemas import (
     ChangePasswordRequest,
     BlogGenerateRequest,
     GeneratedBlogResponse,
-    PaginatedBlogsResponse
+    PaginatedBlogsResponse,
+    BlogUpdateRequest,
 )
