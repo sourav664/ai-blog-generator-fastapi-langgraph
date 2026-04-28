@@ -1,5 +1,7 @@
 import json
 import uuid
+import mimetypes
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -53,11 +55,44 @@ async def generate_blog_endpoint(
             is_published=False
         )
         db.add(new_blog)
+        
+        # Save images to database
+        images_dir = Path("images")
+        for spec in image_specs:
+            filename = spec.get("filename")
+            if not filename:
+                continue
+            file_path = images_dir / filename
+            if file_path.exists():
+                mime_type, _ = mimetypes.guess_type(filename)
+                if not mime_type:
+                    mime_type = "application/octet-stream"
+                
+                image_data = file_path.read_bytes()
+                new_image = models.BlogImage(
+                    blog_id=new_blog.blog_id,
+                    filename=filename,
+                    data=image_data,
+                    content_type=mime_type
+                )
+                db.add(new_image)
+                
+                try:
+                    file_path.unlink()
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Failed to delete {file_path}: {e}")
+
         await db.commit()
         await db.refresh(new_blog, attribute_names=["author"])
         return new_blog
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        from exception.custom_exception import BlogGeneratorException
+        import logging
+        logging.error(f"Generation failed: {e}")
+        if isinstance(e, BlogGeneratorException):
+            raise HTTPException(status_code=500, detail=e.error_message)
+        raise HTTPException(status_code=500, detail="An internal error occurred while generating the blog.")
 
 
 @router.post("/{blog_id}/publish", response_model=GeneratedBlogResponse)

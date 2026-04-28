@@ -100,16 +100,33 @@ class BlogGeneratorWorker:
             results = tool.invoke({"query": query})
 
             normalized: List[dict] = []
+            
+            if isinstance(results, str):
+                results = [{"content": results}]
+            elif isinstance(results, dict) and "results" in results:
+                results = results["results"]
+
             for r in results or []:
-                normalized.append(
-                    {
-                        "title": r.get("title") or "",
-                        "url": r.get("url") or "",
-                        "snippet": r.get("content") or r.get("snippet") or "",
-                        "published_at": r.get("published_date") or r.get("published_at"),
-                        "source": r.get("source"),
-                    }
-                )
+                if isinstance(r, dict):
+                    normalized.append(
+                        {
+                            "title": r.get("title") or "",
+                            "url": r.get("url") or "",
+                            "snippet": r.get("content") or r.get("snippet") or "",
+                            "published_at": r.get("published_date") or r.get("published_at"),
+                            "source": r.get("source"),
+                        }
+                    )
+                elif isinstance(r, str):
+                    normalized.append(
+                        {
+                            "title": "Search Result",
+                            "url": "",
+                            "snippet": r,
+                            "published_at": None,
+                            "source": None,
+                        }
+                    )
                 
             self.logger.info("Searched tavily successfully")
             

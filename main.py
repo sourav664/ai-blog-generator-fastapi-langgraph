@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status, Response
 from fastapi.exception_handlers import (
     http_exception_handler,
     request_validation_exception_handler,
@@ -36,13 +36,29 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/media", StaticFiles(directory="media"), name="media")
 import os
 os.makedirs("images", exist_ok=True)
-app.mount("/images", StaticFiles(directory="images"), name="images")
+# The static /images mount is removed to serve from the database instead
 
 templates = Jinja2Templates(directory="templates")
 
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 app.include_router(blogs.router, prefix="/api/blogs", tags=["blogs"])
+
+
+@app.get("/images/{filename}", include_in_schema=False)
+async def get_image(filename: str, db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(select(models.BlogImage).where(models.BlogImage.filename == filename))
+    image = result.scalars().first()
+    if image:
+        return Response(content=image.data, media_type=image.content_type)
+    
+    # Fallback for older static images
+    file_path = os.path.join("images", filename)
+    if os.path.exists(file_path):
+        from fastapi.responses import FileResponse
+        return FileResponse(file_path)
+        
+    raise HTTPException(status_code=404, detail="Image not found")
 
 
 @app.get("/", include_in_schema=False, name="home")

@@ -206,8 +206,9 @@ class MergeImagesWorker:
                             f"> **Prompt:** {spec.get('prompt','')}\n>\n"
                             f"> **Error:** {e}\n"
                         )
-                        
-                        md = md.replace(placeholder, prompt_block)
+                        p_clean = placeholder.replace("[", "").replace("]", "").strip()
+                        md = re.sub(rf"\[\[?\s*{re.escape(p_clean)}\s*\]\]?", prompt_block, md, flags=re.IGNORECASE)
+                        md = md.replace(placeholder, prompt_block) # fallback
                         
                         self.logger.error(
                             f"Error generating image for {spec['prompt']}",
@@ -217,7 +218,9 @@ class MergeImagesWorker:
                        
 
                 img_md = f"![{spec['alt']}](/images/{filename})\n*{spec['caption']}*"
-                md = md.replace(placeholder, img_md)
+                p_clean = placeholder.replace("[", "").replace("]", "").strip()
+                md = re.sub(rf"\[\[?\s*{re.escape(p_clean)}\s*\]\]?", img_md, md, flags=re.IGNORECASE)
+                md = md.replace(placeholder, img_md) # fallback
 
             blog_path = root_dir / "generated_blogs"
             blog_path.mkdir(parents=True, exist_ok=True)

@@ -8,7 +8,7 @@ import operator
 
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
@@ -202,7 +202,16 @@ class GeneratedBlog(Base):
         content = self.content
         # Remove title `# ...`
         content = re.sub(r'^#\s+.*$', '', content, flags=re.MULTILINE)
-        # Remove images `![...](...)`
         content = re.sub(r'!\[.*?\]\(.*?\)', '', content)
         content = content.strip()
-        return content[:300] + '...' if len(content) > 300 else content
+        return content[:300] + '...' if len(content) > 300 else content
+
+class BlogImage(Base):
+    __tablename__ = "blog_images"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    blog_id: Mapped[str] = mapped_column(String(50), ForeignKey("generated_blogs.blog_id"), index=True, nullable=True)
+    filename: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    content_type: Mapped[str] = mapped_column(String(50), nullable=False)
+
