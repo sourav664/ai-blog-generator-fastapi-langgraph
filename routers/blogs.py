@@ -56,6 +56,8 @@ async def generate_blog_endpoint(
         )
         db.add(new_blog)
         
+        await db.flush()
+        
         # Save images to database
         images_dir = Path("images")
         for spec in image_specs:
@@ -87,12 +89,19 @@ async def generate_blog_endpoint(
         await db.refresh(new_blog, attribute_names=["author"])
         return new_blog
     except Exception as e:
+        
+        import traceback
+        traceback.print_exc()
+
         from exception.custom_exception import BlogGeneratorException
-        import logging
-        logging.error(f"Generation failed: {e}")
+
         if isinstance(e, BlogGeneratorException):
             raise HTTPException(status_code=500, detail=e.error_message)
-        raise HTTPException(status_code=500, detail="An internal error occurred while generating the blog.")
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 @router.post("/{blog_id}/publish", response_model=GeneratedBlogResponse)

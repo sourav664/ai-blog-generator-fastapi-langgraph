@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from fastapi import Depends, FastAPI, HTTPException, Request, status, Response
 from fastapi.exception_handlers import (
     http_exception_handler,
@@ -16,15 +19,13 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from schemas import models
 from config import settings
-from database import Base, engine, get_db
+from database import engine, get_db
 from routers import posts, users, blogs
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown
     await engine.dispose()

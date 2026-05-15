@@ -145,6 +145,7 @@ class Post(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
+    likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     author: Mapped[User] = relationship(back_populates="posts")
     
@@ -214,4 +215,4 @@ class BlogImage(Base):
     filename: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
     data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     content_type: Mapped[str] = mapped_column(String(50), nullable=False)
-
+
