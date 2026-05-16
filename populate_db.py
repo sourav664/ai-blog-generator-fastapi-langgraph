@@ -5,9 +5,10 @@ from pathlib import Path
 import httpx
 from sqlalchemy import delete, select, update
 
+from config import settings
 from schemas import models
 from database import AsyncSessionLocal, engine
-from image_utils import PROFILE_PICS_DIR
+from image_utils import _get_s3_client
 from main import app
 
 POPULATE_IMAGES_DIR = Path("populate_images")
@@ -234,17 +235,25 @@ POST_44 = {
 
 
 async def clear_existing_data() -> None:
-    # Delete profile pictures from local storage
-    if PROFILE_PICS_DIR.exists():
-        for file in PROFILE_PICS_DIR.iterdir():
-            if file.is_file() and file.name != ".gitkeep":
-                file.unlink()
-        print(f"Deleted profile pictures from {PROFILE_PICS_DIR}")
+    # Delete profile pictures from S3 (need DB records to know which files)
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(models.User.image_file).where(models.User.image_file.is_not(None)),
+        )
+        filenames = result.scalars().all()
+
+    if filenames:
+        s3 = _get_s3_client()
+        s3.delete_objects(
+            Bucket=settings.s3_bucket_name,
+            Delete={"Objects": [{"Key": f"profile_pics/{f}"} for f in filenames]},
+        )
+        print(f"Deleted {len(filenames)} images from S3")
 
     # Clear database tables (order respects foreign keys)
     async with AsyncSessionLocal() as db:
+        await db.execute(delete(models.PasswordResetToken))
         await db.execute(delete(models.Post))
-        await db.execute(delete(models.GeneratedBlog))
         await db.execute(delete(models.User))
         await db.commit()
     print("Cleared existing data")
@@ -254,7 +263,7 @@ async def update_post_dates() -> None:
     now = datetime.now(UTC)
 
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(models.GeneratedBlog).order_by(models.GeneratedBlog.id))
+        result = await db.execute(select(models.Post).order_by(models.Post.id))
         posts = result.scalars().all()
 
         if not posts:
@@ -262,9 +271,9 @@ async def update_post_dates() -> None:
 
         # First post (POST_44) is the oldest - ~90 days ago
         await db.execute(
-            update(models.GeneratedBlog)
-            .where(models.GeneratedBlog.id == posts[0].id)
-            .values(created_at=now - timedelta(days=90)),
+            update(models.Post)
+            .where(models.Post.id == posts[0].id)
+            .values(date_posted=now - timedelta(days=90)),
         )
 
         # Remaining posts: each ~1.5 days newer than previous
@@ -273,9 +282,9 @@ async def update_post_dates() -> None:
             hours_offset = (i * 7) % 24
             post_date = now - timedelta(days=days_ago, hours=hours_offset)
             await db.execute(
-                update(models.GeneratedBlog)
-                .where(models.GeneratedBlog.id == post.id)
-                .values(created_at=post_date),
+                update(models.Post)
+                .where(models.Post.id == post.id)
+                .values(date_posted=post_date),
             )
 
         await db.commit()
@@ -289,7 +298,7 @@ async def populate() -> None:
         transport=transport,
         base_url="http://localhost",
     ) as client:
-        # Clear existing data (local images first, then database)
+        # Clear existing data (S3 images first, then database)
         await clear_existing_data()
 
         users: list[dict] = []
@@ -341,40 +350,33 @@ async def populate() -> None:
 
         print(f"\nCreating {len(POSTS) + 1} posts...")
 
-        import uuid
+        # First create POST_44 (will become oldest after date update)
+        response = await client.post(
+            "/api/posts",
+            json={"title": POST_44["title"], "content": POST_44["content"]},
+            headers={"Authorization": f"Bearer {users[0]['token']}"},
+        )
+        response.raise_for_status()
+        print(f"  Created: '{POST_44['title']}'")
 
-        async with AsyncSessionLocal() as db:
-            # First create POST_44 (will become oldest after date update)
-            new_blog = models.GeneratedBlog(
-                blog_id=str(uuid.uuid4()),
-                title=POST_44["title"],
-                content=POST_44["content"],
-                images="[]",
-                user_id=users[0]["id"],
-                is_published=True
+        # Create remaining posts in reverse (last in list = oldest, first = newest)
+        for i, post_data in enumerate(reversed(POSTS)):
+            user = users[i % len(users)]
+            response = await client.post(
+                "/api/posts",
+                json={
+                    "title": post_data["title"],
+                    "content": post_data["content"],
+                },
+                headers={"Authorization": f"Bearer {user['token']}"},
             )
-            db.add(new_blog)
-            print(f"  Created: '{POST_44['title']}'")
-
-            # Create remaining posts in reverse (last in list = oldest, first = newest)
-            for i, post_data in enumerate(reversed(POSTS)):
-                user = users[i % len(users)]
-                new_blog = models.GeneratedBlog(
-                    blog_id=str(uuid.uuid4()),
-                    title=post_data["title"],
-                    content=post_data["content"],
-                    images="[]",
-                    user_id=user["id"],
-                    is_published=True
-                )
-                db.add(new_blog)
-                title = post_data["title"]
-                print(
-                    f"  Created: '{title[:50]}...'"
-                    if len(title) > 50
-                    else f"  Created: '{title}'",
-                )
-            await db.commit()
+            response.raise_for_status()
+            title = post_data["title"]
+            print(
+                f"  Created: '{title[:50]}...'"
+                if len(title) > 50
+                else f"  Created: '{title}'",
+            )
 
         print("\nUpdating post dates...")
         await update_post_dates()
@@ -384,7 +386,7 @@ async def populate() -> None:
     print("\nDone!")
     print(f"  {len(USERS)} users")
     print(f"  {len(POSTS) + 1} posts")
-    print("  Profile pictures saved locally")
+    print("  Profile pictures uploaded to S3")
 
 
 if __name__ == "__main__":

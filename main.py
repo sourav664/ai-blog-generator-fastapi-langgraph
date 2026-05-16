@@ -34,7 +34,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/media", StaticFiles(directory="media"), name="media")
+
 import os
 os.makedirs("images", exist_ok=True)
 # The static /images mount is removed to serve from the database instead
