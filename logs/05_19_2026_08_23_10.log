@@ -1,0 +1,33 @@
+Found credentials in environment variables.
+HTTP Request: GET http://test/api/posts "HTTP/1.1 200 OK"
+Found credentials in environment variables.
+HTTP Request: GET http://test/api/posts/999 "HTTP/1.1 404 Not Found"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/posts "HTTP/1.1 401 Unauthorized"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: PATCH http://test/api/posts/2 "HTTP/1.1 200 OK"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: PATCH http://test/api/posts/3 "HTTP/1.1 403 Forbidden"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/posts "HTTP/1.1 201 Created"
+HTTP Request: GET http://test/api/posts "HTTP/1.1 200 OK"
+HTTP Request: GET http://test/api/posts?limit=2 "HTTP/1.1 200 OK"
+HTTP Request: GET http://test/api/posts?skip=2&limit=2 "HTTP/1.1 200 OK"

@@ -38,3 +38,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["workflows", "api", "config", "schemas", "database", "logger", "exception", "prompt_library", "utils", "routers"]
 exclude = ["notebooks", "logs", "images", "generated_blogs"]
+
+[dependency-groups]
+dev = [
+    "moto[s3]>=5.2.1",
+    "pytest>=9.0.3",
+]
