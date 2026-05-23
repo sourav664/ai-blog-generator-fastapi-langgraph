@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from schemas import models
-from auth import CurrentUser
+from src.auth import CurrentUser
 from config import settings
 from database import get_db
 from schemas import BlogGenerateRequest, GeneratedBlogResponse, PaginatedBlogsResponse, BlogUpdateRequest

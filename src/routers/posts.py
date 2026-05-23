@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from schemas import models
-from auth import CurrentUser
+from src.auth import CurrentUser
 from config import settings
 from database import get_db
 from schemas import PaginatedPostsResponse, PostCreate, PostResponse, PostUpdate
@@ -68,9 +68,9 @@ async def create_post(
 @router.get("/{post_id}", response_model=PostResponse)
 async def get_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
-        select(models.Post)
-        .options(selectinload(models.Post.author))
-        .where(models.Post.id == post_id),
+        select(models.GeneratedBlog)
+        .options(selectinload(models.GeneratedBlog.author))
+        .where(models.GeneratedBlog.id == post_id),
     )
     post = result.scalars().first()
     if post:
@@ -85,7 +85,11 @@ async def update_post_full(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+            select(models.GeneratedBlog)
+            .options(selectinload(models.GeneratedBlog.images_rel))
+            .where(models.GeneratedBlog.id == post_id)
+        )
     post = result.scalars().first()
     if not post:
         raise HTTPException(
@@ -114,7 +118,11 @@ async def update_post_partial(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+                select(models.GeneratedBlog)
+                .options(selectinload(models.GeneratedBlog.images_rel))
+                .where(models.GeneratedBlog.id == post_id)
+            )
     post = result.scalars().first()
     if not post:
         raise HTTPException(
@@ -143,7 +151,11 @@ async def delete_post(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+                select(models.GeneratedBlog)
+                .options(selectinload(models.GeneratedBlog.images_rel))
+                .where(models.GeneratedBlog.id == post_id)
+            )
     post = result.scalars().first()
     if not post:
         raise HTTPException(

@@ -22,7 +22,7 @@ from starlette.concurrency import run_in_threadpool
 
 from database import get_db
 from schemas import models
-from auth import (
+from src.auth import (
     CurrentUser,
     create_access_token,
     generate_reset_token,
@@ -32,8 +32,8 @@ from auth import (
 )
 from config import settings
 from database import get_db
-from email_utils import send_password_reset_email
-from image_utils import delete_profile_image, process_profile_image, upload_profile_image
+from src.email_utils import send_password_reset_email
+from src.image_utils import delete_profile_image, process_profile_image, upload_profile_image
 from schemas.schemas import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
@@ -275,16 +275,16 @@ async def get_user_posts(
 
     count_result = await db.execute(
         select(func.count())
-        .select_from(models.Post)
-        .where(models.Post.user_id == user_id),
+        .select_from(models.GeneratedBlog)
+        .where(models.GeneratedBlog.user_id == user_id),
     )
     total = count_result.scalar() or 0
 
     result = await db.execute(
-        select(models.Post)
-        .options(selectinload(models.Post.author))
-        .where(models.Post.user_id == user_id)
-        .order_by(models.Post.date_posted.desc())
+        select(models.GeneratedBlog)
+        .options(selectinload(models.GeneratedBlog.author))
+        .where(models.GeneratedBlog.user_id == user_id)
+        .order_by(models.GeneratedBlog.created_at.desc())
         .offset(skip)
         .limit(limit),
     )

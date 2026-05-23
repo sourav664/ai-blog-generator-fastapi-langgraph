@@ -117,7 +117,7 @@ class User(Base):
     
     
     
-    posts: Mapped[list[Post]] = relationship(back_populates="author", cascade="all, delete-orphan")
+    posts: Mapped[list[GeneratedBlog]] = relationship(back_populates="author", cascade="all, delete-orphan")
     reset_tokens: Mapped[list[PasswordResetToken]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
@@ -130,24 +130,27 @@ class User(Base):
         return "/static/profile_pics/default.jpg"
 
 
-class Post(Base):
-    __tablename__ = "posts"
+# class Post(Base):
+#     __tablename__ = "posts"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    title: Mapped[str] = mapped_column(String(100), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
-        nullable=False,
-        index=True,
-    )
-    date_posted: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-    )
-    likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+#     id: Mapped[int] = mapped_column(primary_key=True)
 
-    author: Mapped[User] = relationship(back_populates="posts")
+#     title: Mapped[str]
+#     content: Mapped[str]
+
+#     user_id: Mapped[int]
+
+#     created_at: Mapped[datetime]
+
+#     is_ai_generated: Mapped[bool] = mapped_column(default=False)
+
+#     ai_blog_id: Mapped[str | None]
+
+#     is_published: Mapped[bool] = mapped_column(default=True)
+
+#     likes: Mapped[int] = mapped_column(default=0)
+
+#     images: Mapped[str | None]
     
     
     
@@ -179,8 +182,14 @@ class GeneratedBlog(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     is_published: Mapped[bool] = mapped_column(default=False)
-
+    likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    
     author: Mapped[User] = relationship(foreign_keys=[user_id])
+    
+    images_rel: Mapped[list["BlogImage"]] = relationship(
+    back_populates="blog",
+    cascade="all, delete-orphan",
+)
 
     @property
     def content_without_title(self) -> str:
@@ -211,8 +220,12 @@ class BlogImage(Base):
     __tablename__ = "blog_images"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    blog_id: Mapped[str] = mapped_column(String(50), ForeignKey("generated_blogs.blog_id"), index=True, nullable=True)
+    blog_id: Mapped[str] = mapped_column(String(50), ForeignKey("generated_blogs.blog_id", ondelete="CASCADE"), index=True, nullable=True)
     filename: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
     data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     content_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    
+    blog: Mapped["GeneratedBlog"] = relationship(
+        back_populates="images_rel"
+    )
 
