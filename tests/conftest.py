@@ -3,6 +3,11 @@ from collections.abc import AsyncGenerator
 
 import sys
 from pathlib import Path
+import platform
+import asyncio
+
+if platform.system() == "Windows":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -32,7 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool
 
 from database import Base, get_db
-from main import app
+from src.main import app
 
 pytest_plugins = ["anyio"]
 

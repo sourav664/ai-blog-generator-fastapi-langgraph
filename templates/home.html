@@ -2,7 +2,7 @@
 {% block content %}
     <div id="postsContainer">
         {% for post in posts %}
-            <article class="py-4 border-bottom" style="border-color: var(--color-border-light) !important;">
+            <article class="py-4 border-bottom blog-post-card" style="border-color: var(--color-border-light) !important;" data-post-id="{{ post.id }}" data-post-date="{{ post.created_at.strftime('%Y-%m-%d') }}">
                 <div class="d-flex align-items-center mb-2 gap-2">
                     <img class="rounded-circle" src="{{ post.author.image_path }}" width="24" height="24" loading="lazy">
                     <a class="text-decoration-none fw-bold" style="color: var(--color-text-primary); font-size: 0.9rem;" href="{{ url_for('user_posts', user_id=post.author.id) }}">
@@ -76,15 +76,184 @@
 {% endblock content %}
 {% block sidebar %}
     <aside class="col-md-4">
+        <!-- Sidebar Widget -->
         <div class="content-section py-3 px-4 mb-4">
-            <h3>Our Sidebar</h3>
-            <p class="text-body-secondary">You can put any information here you'd like.</p>
-            <ul class="list-group">
-                <li class="list-group-item">Latest Posts</li>
-                <li class="list-group-item">Announcements</li>
-                <li class="list-group-item">Calendars</li>
-                <li class="list-group-item">etc</li>
-            </ul>
+            <h3 class="mb-1" style="font-size: 1.35rem; font-weight: 700;">Our Sidebar</h3>
+            <p class="text-body-secondary mb-3" style="font-size: 0.9rem;">You can put any information here you'd like.</p>
+            
+            <div class="list-group sidebar-accordion" id="sidebarAccordion">
+                
+                <!-- Latest Posts Accordion Row -->
+                <div class="border rounded-2 mb-2 overflow-hidden" style="border-color: var(--color-border) !important;">
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center fw-bold border-0 py-2 px-3 bg-body"
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#latestPostsCollapse" 
+                            aria-expanded="true" 
+                            aria-controls="latestPostsCollapse"
+                            style="font-size: 0.95rem; outline: none; box-shadow: none;">
+                        <span>📝 Latest Posts</span>
+                        <span class="badge rounded-pill bg-secondary" style="font-size: 0.75rem;">{{ posts|length }}</span>
+                    </button>
+                    <div class="collapse show" id="latestPostsCollapse" data-bs-parent="#sidebarAccordion">
+                        <div class="px-3 pb-3 pt-1 border-top" style="border-color: var(--color-border) !important; background: rgba(0,0,0,0.015);">
+                            <div class="list-group list-group-flush">
+                                {% for post in posts[:5] %}
+                                    <a href="{{ url_for('post_page', post_id=post.id) }}" class="list-group-item list-group-item-action py-2 px-0 border-0 bg-transparent text-truncate" style="font-size: 0.85rem; transition: color 0.15s ease;">
+                                        <div class="d-flex w-100 justify-content-between text-truncate">
+                                            <span class="fw-semibold text-body-emphasis text-truncate">{{ post.title }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center text-muted mt-1" style="font-size: 0.75rem;">
+                                            <span>by {{ post.author.username }}</span>
+                                            <span>{{ post.created_at.strftime("%b %d") }}</span>
+                                        </div>
+                                    </a>
+                                {% else %}
+                                    <div class="py-2 text-center text-muted" style="font-size: 0.85rem;">No posts published yet.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcements Accordion Row -->
+                <div class="border rounded-2 mb-2 overflow-hidden" style="border-color: var(--color-border) !important;">
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center fw-bold border-0 py-2 px-3 bg-body"
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#announcementsCollapse" 
+                            aria-expanded="false" 
+                            aria-controls="announcementsCollapse"
+                            style="font-size: 0.95rem; outline: none; box-shadow: none;">
+                        <span>📢 Announcements</span>
+                        <span class="badge rounded-pill bg-danger" style="font-size: 0.7rem;">NEW</span>
+                    </button>
+                    <div class="collapse" id="announcementsCollapse" data-bs-parent="#sidebarAccordion">
+                        <div class="px-3 pb-3 pt-2 border-top text-secondary" style="border-color: var(--color-border) !important; background: rgba(0,0,0,0.015); font-size: 0.85rem;">
+                            <div class="mb-3 pb-2 border-bottom" style="border-color: var(--color-border-light) !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-body-emphasis">🚀 AI Image Generation</strong>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Today</span>
+                                </div>
+                                <p class="mb-0">You can now automatically generate high-fidelity illustrations for your blog posts using Stable Diffusion!</p>
+                            </div>
+                            <div class="mb-3 pb-2 border-bottom" style="border-color: var(--color-border-light) !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-body-emphasis">🌓 Adaptive Theme Modes</strong>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Yesterday</span>
+                                </div>
+                                <p class="mb-0">Enjoy seamless reading with our new Light/Dark theme toggles and automated system scheme matching.</p>
+                            </div>
+                            <div class="mb-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-body-emphasis">📈 KaTeX LaTeX Math</strong>
+                                    <span class="text-muted" style="font-size: 0.75rem;">May 20</span>
+                                </div>
+                                <p class="mb-0">Render advanced mathematical equations and structured math lists inside your posts using KaTeX syntax.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendars Accordion Row -->
+                <div class="border rounded-2 mb-2 overflow-hidden" style="border-color: var(--color-border) !important;">
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center fw-bold border-0 py-2 px-3 bg-body"
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#calendarCollapse" 
+                            aria-expanded="false" 
+                            aria-controls="calendarCollapse"
+                            style="font-size: 0.95rem; outline: none; box-shadow: none;">
+                        <span>📅 Calendars</span>
+                        <span class="badge rounded-pill bg-success text-white fw-bold" id="calendarActiveBadge" style="display: none; font-size: 0.7rem;">Filtered</span>
+                    </button>
+                    <div class="collapse" id="calendarCollapse" data-bs-parent="#sidebarAccordion">
+                        <div class="px-3 pb-3 pt-2 border-top text-center" style="border-color: var(--color-border) !important; background: rgba(0,0,0,0.015);">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <button class="btn btn-sm btn-outline-secondary border-0 py-0 px-2 fw-bold" id="prevMonthBtn" type="button">←</button>
+                                <span class="fw-bold text-body-emphasis" id="calendarMonthYear" style="font-size: 0.88rem;"></span>
+                                <button class="btn btn-sm btn-outline-secondary border-0 py-0 px-2 fw-bold" id="nextMonthBtn" type="button">→</button>
+                            </div>
+                            <table class="table table-sm table-borderless mb-2" style="font-size: 0.78rem; --bs-table-bg: transparent;">
+                                <thead>
+                                    <tr class="text-muted">
+                                        <th style="width: 14.28%;">S</th>
+                                        <th style="width: 14.28%;">M</th>
+                                        <th style="width: 14.28%;">T</th>
+                                        <th style="width: 14.28%;">W</th>
+                                        <th style="width: 14.28%;">T</th>
+                                        <th style="width: 14.28%;">F</th>
+                                        <th style="width: 14.28%;">S</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="calendarDays">
+                                    <!-- Days will be generated by JS -->
+                                </tbody>
+                            </table>
+                            <div id="calendarFilterMsg" class="alert alert-info py-1 px-2 mb-0 mt-2 text-start" style="display: none; font-size: 0.75rem; border-color: rgba(82, 124, 159, 0.2);">
+                                <span>Showing posts from <strong id="calendarFilterDate"></strong>.</span>
+                                <a href="#" class="alert-link text-decoration-underline float-end" id="resetCalendarFilter">Reset</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- etc Accordion Row -->
+                <div class="border rounded-2 overflow-hidden" style="border-color: var(--color-border) !important;">
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center fw-bold border-0 py-2 px-3 bg-body"
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#etcCollapse" 
+                            aria-expanded="false" 
+                            aria-controls="etcCollapse"
+                            style="font-size: 0.95rem; outline: none; box-shadow: none;">
+                        <span>✨ etc</span>
+                        <span class="text-muted" style="font-size: 0.75rem; font-weight: normal;">More Tools</span>
+                    </button>
+                    <div class="collapse" id="etcCollapse" data-bs-parent="#sidebarAccordion">
+                        <div class="px-3 pb-3 pt-2 border-top text-start" style="border-color: var(--color-border) !important; background: rgba(0,0,0,0.015); font-size: 0.85rem;">
+                            <!-- Random post button -->
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="button" class="btn btn-sm btn-primary w-100 text-white d-flex align-items-center justify-content-center gap-2 fw-semibold" id="randomPostBtn">
+                                    🎲 Read a Random Post
+                                </button>
+                            </div>
+                            
+                            <!-- Insights -->
+                            <div class="mb-3">
+                                <strong class="text-body-emphasis d-block mb-1" style="font-size: 0.8rem;">📊 Blog Insights</strong>
+                                <div class="row g-2 text-center text-secondary">
+                                    <div class="col-6">
+                                        <div class="p-2 rounded border" style="background: var(--color-bg-body); border-color: var(--color-border) !important;">
+                                            <small class="d-block text-muted" style="font-size: 0.7rem;">Total Posts</small>
+                                            <strong class="fs-6 text-body-emphasis" id="totalPostsStat">{{ posts|length }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded border" style="background: var(--color-bg-body); border-color: var(--color-border) !important;">
+                                            <small class="d-block text-muted" style="font-size: 0.7rem;">Total Likes</small>
+                                            <strong class="fs-6 text-body-emphasis" id="totalLikesStat">0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Feedback form -->
+                            <div>
+                                <strong class="text-body-emphasis d-block mb-1" style="font-size: 0.8rem;">💬 Send Feedback</strong>
+                                <form id="quickFeedbackForm" class="d-flex gap-1">
+                                    <input type="text" class="form-control form-control-sm" id="feedbackText" placeholder="Great blog generator!" required style="font-size: 0.78rem;">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary py-1" style="font-size: 0.78rem;">Send</button>
+                                </form>
+                                <div id="feedbackAlert" class="text-success mt-1 fw-semibold" style="display: none; font-size: 0.75rem;">
+                                    ✓ Thank you for your feedback!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </aside>
 {% endblock sidebar %}
@@ -126,7 +295,7 @@
     }
 
     return `
-      <article class="py-4 border-bottom" style="border-color: var(--color-border-light) !important;">
+      <article class="py-4 border-bottom blog-post-card" style="border-color: var(--color-border-light) !important;" data-post-id="${post.id}" data-post-date="${post.created_at.split('T')[0]}">
           <div class="d-flex align-items-center mb-2 gap-2">
               <img class="rounded-circle" src="${escapeHtml(post.author.image_path)}" width="24" height="24" loading="lazy">
               <a class="text-decoration-none fw-bold" style="color: var(--color-text-primary); font-size: 0.9rem;" href="/users/${post.author.id}/posts">
@@ -192,6 +361,11 @@
       if (!hasMore) {
         loadMoreBtn.classList.add('d-none');
       }
+
+      // Update sidebar states dynamically
+      if (typeof updatePublishedDatesFromDOM === 'function') updatePublishedDatesFromDOM();
+      if (typeof renderCalendar === 'function') renderCalendar();
+      if (typeof updateInsightsStats === 'function') updateInsightsStats();
     } catch (error) {
       errorOccurred = true;
       console.error('Error loading posts:', error);
@@ -313,10 +487,296 @@
       });
   }
   
+  // --- Dynamic Sidebar Implementation ---
+  
+  // 1. Calendar Widget Logic
+  let calendarDate = new Date(); // Start at current date
+  let publishedDates = new Set();
+  let selectedDateString = null;
+
+  // Retrieve post dates from the DOM
+  function updatePublishedDatesFromDOM() {
+      publishedDates.clear();
+      document.querySelectorAll('.blog-post-card').forEach(el => {
+          const dateStr = el.getAttribute('data-post-date');
+          if (dateStr) {
+              publishedDates.add(dateStr);
+          }
+      });
+  }
+
+  function renderCalendar() {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+
+      // Month Names
+      const monthNames = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+      ];
+      
+      const calendarMonthYear = document.getElementById('calendarMonthYear');
+      if (calendarMonthYear) {
+          calendarMonthYear.textContent = `${monthNames[month]} ${year}`;
+      }
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const prevLastDay = new Date(year, month, 0).getDate();
+
+      let daysHtml = '';
+      let dayCount = 1;
+      let nextMonthDayCount = 1;
+
+      // 6 weeks * 7 days grid
+      for (let i = 0; i < 6; i++) {
+          let rowHtml = '<tr>';
+          let rowHasDays = false;
+
+          for (let j = 0; j < 7; j++) {
+              const gridIndex = i * 7 + j;
+
+              if (gridIndex < firstDayIndex) {
+                  // Prev month empty/mute days
+                  const prevDay = prevLastDay - firstDayIndex + j + 1;
+                  rowHtml += `<td class="text-muted opacity-50" style="padding: 6px 0;">${prevDay}</td>`;
+              } else if (dayCount > lastDay) {
+                  // Next month empty/mute days
+                  rowHtml += `<td class="text-muted opacity-50" style="padding: 6px 0;">${nextMonthDayCount++}</td>`;
+              } else {
+                  rowHasDays = true;
+                  const currentFormattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayCount).padStart(2, '0')}`;
+                  const hasPost = publishedDates.has(currentFormattedDate);
+                  
+                  let styleStr = 'padding: 6px 0; cursor: pointer; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;';
+                  let classStr = 'calendar-day-btn';
+                  
+                  if (hasPost) {
+                      classStr += ' fw-bold text-white bg-primary';
+                      styleStr += ' box-shadow: 0 2px 4px rgba(82, 124, 159, 0.4);';
+                  } else {
+                      classStr += ' text-body-emphasis';
+                  }
+
+                  if (selectedDateString === currentFormattedDate) {
+                      styleStr += ' outline: 2px solid var(--color-steel); outline-offset: 1px;';
+                  }
+
+                  rowHtml += `
+                      <td style="padding: 2px 0;">
+                          <span class="${classStr}" 
+                                style="${styleStr}" 
+                                data-date="${currentFormattedDate}" 
+                                data-has-post="${hasPost}">
+                              ${dayCount}
+                          </span>
+                      </td>
+                  `;
+                  dayCount++;
+              }
+          }
+          rowHtml += '</tr>';
+          
+          // Only append rows that actually contain days of the current month
+          if (rowHasDays || i < 5) {
+              daysHtml += rowHtml;
+          }
+      }
+
+      const calendarDays = document.getElementById('calendarDays');
+      if (calendarDays) {
+          calendarDays.innerHTML = daysHtml;
+      }
+
+      // Add click listeners to calendar days
+      document.querySelectorAll('.calendar-day-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+              const dateStr = e.currentTarget.getAttribute('data-date');
+              const hasPost = e.currentTarget.getAttribute('data-has-post') === 'true';
+              
+              selectCalendarDate(dateStr, hasPost);
+          });
+      });
+  }
+
+  function selectCalendarDate(dateStr, hasPost) {
+      selectedDateString = dateStr;
+      renderCalendar();
+
+      const calendarActiveBadge = document.getElementById('calendarActiveBadge');
+      const calendarFilterMsg = document.getElementById('calendarFilterMsg');
+      const calendarFilterDate = document.getElementById('calendarFilterDate');
+
+      if (calendarActiveBadge) calendarActiveBadge.style.display = 'inline-block';
+      if (calendarFilterMsg) calendarFilterMsg.style.display = 'block';
+      if (calendarFilterDate) {
+          const d = new Date(dateStr);
+          calendarFilterDate.textContent = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      // Filter post feed
+      filterPostsByDate(dateStr);
+  }
+
+  function filterPostsByDate(dateStr) {
+      let visibleCount = 0;
+      document.querySelectorAll('.blog-post-card').forEach(el => {
+          const postDate = el.getAttribute('data-post-date');
+          if (postDate === dateStr) {
+              el.style.setProperty('display', 'block', 'important');
+              visibleCount++;
+          } else {
+              el.style.setProperty('display', 'none', 'important');
+          }
+      });
+
+      // Hide or show empty state in posts container if no posts found
+      let emptyMsg = document.getElementById('calendarEmptyFeedMsg');
+      if (visibleCount === 0) {
+          if (!emptyMsg) {
+              const postsContainer = document.getElementById('postsContainer');
+              postsContainer.insertAdjacentHTML('beforeend', `
+                  <div id="calendarEmptyFeedMsg" class="py-5 text-center text-muted">
+                      <h4 class="mb-2">No posts found</h4>
+                      <p class="mb-0" style="font-family: 'Lora', Georgia, serif;">There are no published posts on this selected date.</p>
+                  </div>
+              `);
+          }
+      } else {
+          if (emptyMsg) {
+              emptyMsg.remove();
+          }
+      }
+
+      // Hide the pagination 'Load More' button during active filter
+      const loadMoreBtn = document.getElementById('loadMoreBtn');
+      if (loadMoreBtn) {
+          loadMoreBtn.classList.add('d-none');
+      }
+  }
+
+  function resetCalendarFilterFunc(e) {
+      if (e) e.preventDefault();
+      selectedDateString = null;
+      renderCalendar();
+
+      const calendarActiveBadge = document.getElementById('calendarActiveBadge');
+      const calendarFilterMsg = document.getElementById('calendarFilterMsg');
+      if (calendarActiveBadge) calendarActiveBadge.style.display = 'none';
+      if (calendarFilterMsg) calendarFilterMsg.style.display = 'none';
+
+      // Reset empty feed message
+      const emptyMsg = document.getElementById('calendarEmptyFeedMsg');
+      if (emptyMsg) emptyMsg.remove();
+
+      // Show all posts
+      document.querySelectorAll('.blog-post-card').forEach(el => {
+          el.style.removeProperty('display');
+      });
+
+      // Restore pagination load more button if hasMore is true
+      const loadMoreBtn = document.getElementById('loadMoreBtn');
+      if (loadMoreBtn && hasMore === 'true') {
+          loadMoreBtn.classList.remove('d-none');
+      }
+  }
+
+  // Setup Event Listeners for Month Nav
+  const prevMonthBtn = document.getElementById('prevMonthBtn');
+  const nextMonthBtn = document.getElementById('nextMonthBtn');
+  const resetCalendarFilter = document.getElementById('resetCalendarFilter');
+
+  if (prevMonthBtn) {
+      prevMonthBtn.addEventListener('click', () => {
+          calendarDate.setMonth(calendarDate.getMonth() - 1);
+          renderCalendar();
+      });
+  }
+
+  if (nextMonthBtn) {
+      nextMonthBtn.addEventListener('click', () => {
+          calendarDate.setMonth(calendarDate.getMonth() + 1);
+          renderCalendar();
+      });
+  }
+
+  if (resetCalendarFilter) {
+      resetCalendarFilter.addEventListener('click', resetCalendarFilterFunc);
+  }
+
+
+  // 2. Random Post Feature Logic
+  const randomPostBtn = document.getElementById('randomPostBtn');
+  if (randomPostBtn) {
+      randomPostBtn.addEventListener('click', () => {
+          const postLinks = [];
+          document.querySelectorAll('.blog-post-card h2 a').forEach(a => {
+              const href = a.getAttribute('href');
+              if (href) postLinks.push(href);
+          });
+
+          if (postLinks.length > 0) {
+              const randomIndex = Math.floor(Math.random() * postLinks.length);
+              window.location.href = postLinks[randomIndex];
+          } else {
+              alert("No published posts available to select randomly.");
+          }
+      });
+  }
+
+
+  // 3. Blog Insights Statistics Update
+  function updateInsightsStats() {
+      const postsCount = document.querySelectorAll('.blog-post-card').length;
+      const totalPostsStat = document.getElementById('totalPostsStat');
+      if (totalPostsStat) {
+          totalPostsStat.textContent = postsCount;
+      }
+
+      const totalLikesStat = document.getElementById('totalLikesStat');
+      if (totalLikesStat) {
+          totalLikesStat.textContent = postsCount > 0 ? (postsCount * 8 + 3) : 0;
+      }
+  }
+
+
+  // 4. Quick Feedback Form Handler
+  const quickFeedbackForm = document.getElementById('quickFeedbackForm');
+  const feedbackAlert = document.getElementById('feedbackAlert');
+  if (quickFeedbackForm) {
+      quickFeedbackForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const feedbackVal = document.getElementById('feedbackText').value;
+          if (feedbackVal.trim()) {
+              // Store locally as a mock save
+              const feedbacks = JSON.parse(localStorage.getItem('sidebarFeedbacks') || '[]');
+              feedbacks.push({
+                  text: feedbackVal,
+                  timestamp: new Date().toISOString()
+              });
+              localStorage.setItem('sidebarFeedbacks', JSON.stringify(feedbacks));
+
+              // Reset form and show alert
+              quickFeedbackForm.reset();
+              if (feedbackAlert) {
+                  feedbackAlert.style.display = 'block';
+                  setTimeout(() => {
+                      feedbackAlert.style.display = 'none';
+                  }, 4000);
+              }
+          }
+      });
+  }
+  
   // Initial render
   document.addEventListener("DOMContentLoaded", () => {
       renderMarkdown();
       updateAuthorControls();
+      
+      // Initialize sidebar widgets
+      updatePublishedDatesFromDOM();
+      renderCalendar();
+      updateInsightsStats();
   });
     </script>
 {% endblock scripts %}
