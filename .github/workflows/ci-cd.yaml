@@ -10,6 +10,10 @@ jobs:
 
   CI:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,9 +25,12 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --locked --dev
-
+       
       - name: Ruff
         run: uv run ruff check .
+
+      - name: Format Check 
+        run: uv run ruff format --check .
 
       - name: Unit Tests
         run: uv run pytest

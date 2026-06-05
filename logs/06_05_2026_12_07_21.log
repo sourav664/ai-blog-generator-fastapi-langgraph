@@ -1,0 +1,11 @@
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 422 Unprocessable Entity"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users "HTTP/1.1 400 Bad Request"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"

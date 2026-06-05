@@ -17,7 +17,7 @@ MOCK_BLOG_RESULT = {
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_generate_blog_success(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -55,7 +55,7 @@ async def test_generate_blog_unauthorized(client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_publish_blog_success(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -84,7 +84,7 @@ async def test_publish_blog_success(mock_generate_blog, client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_publish_blog_wrong_user(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -112,7 +112,7 @@ async def test_publish_blog_wrong_user(mock_generate_blog, client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_update_blog_success(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -146,7 +146,7 @@ async def test_update_blog_success(mock_generate_blog, client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_update_blog_wrong_user(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -177,7 +177,7 @@ async def test_update_blog_wrong_user(mock_generate_blog, client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_delete_blog_success(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -202,7 +202,7 @@ async def test_delete_blog_success(mock_generate_blog, client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_get_my_blogs(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 
@@ -234,7 +234,7 @@ async def test_get_my_blogs(mock_generate_blog, client: AsyncClient):
 
 
 @pytest.mark.anyio
-@patch("routers.blogs.generate_blog")
+@patch("src.routers.blogs.generate_blog")
 async def test_get_published_blogs(mock_generate_blog, client: AsyncClient):
     mock_generate_blog.return_value = MOCK_BLOG_RESULT
 

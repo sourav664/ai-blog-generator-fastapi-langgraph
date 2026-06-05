@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 import platform
 import asyncio
+from config import settings
 
 if platform.system() == "Windows":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -13,9 +14,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 
 
-os.environ["DATABASE_URL"] = (
-    "postgresql+psycopg://bloguser:blogpass@localhost/test_blog"
-)
+
 os.environ["S3_BUCKET_NAME"] = "test-bucket"
 os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"
 
@@ -50,7 +49,7 @@ def anyio_backend():
 @pytest.fixture(scope="session")
 def test_engine():
     engine = create_async_engine(
-        os.environ["DATABASE_URL"],
+        settings.database_url,
         poolclass=NullPool,
     )
     return engine

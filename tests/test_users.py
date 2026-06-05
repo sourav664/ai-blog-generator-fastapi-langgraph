@@ -91,7 +91,7 @@ async def test_forgot_password_sends_email(client: AsyncClient):
     await create_test_user(client)
 
     with patch(
-        "routers.users.send_password_reset_email",
+        "src.routers.users.send_password_reset_email",
         new_callable=AsyncMock,
     ) as mock_send:
         response = await client.post(
