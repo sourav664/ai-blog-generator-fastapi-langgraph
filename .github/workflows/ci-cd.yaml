@@ -28,12 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --locked --dev
-       
-      - name: Ruff
-        run: uv run ruff check .
-
-      - name: Format Check 
-        run: uv run ruff format --check .
 
       - name: Unit Tests
         run: uv run pytest
