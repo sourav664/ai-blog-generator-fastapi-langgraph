@@ -19,7 +19,7 @@ llm:
 
   openai-image:
      provider: "openai"
-     model_name: "gpt-image-1.5"
+     model_name: "gpt-image-2"
      
 
   google-image:

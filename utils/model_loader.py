@@ -110,7 +110,8 @@ class ModelLoader:
             if provider == "google":
                 llm = ChatGoogleGenerativeAI(
                     model=model_name,
-                    google_api_key=self.api_key_mgr.get("GOOGLE_API_KEY"),
+                    vertexai=True,
+                    project=self.api_key_mgr.get("GOOGLE_PROJECT_ID"),
                     temperature=temperature,
                     max_output_tokens=max_tokens,
                 )
@@ -207,6 +208,7 @@ class ModelLoader:
             BlogGeneratorException
         """
         attempt = 0
+        quality = os.getenv("IMAGE_QUALITY", "medium")
 
         while attempt < retries:
             try:
@@ -224,7 +226,8 @@ class ModelLoader:
                     response = client.images.generate(
                         model=model_name,
                         prompt=prompt,
-                        size="1024x1024"
+                        size="1024x1024",
+                        quality=quality
                     )
 
                 # ----------------------------
