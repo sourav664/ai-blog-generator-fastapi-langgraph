@@ -8,8 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
       SECRET_KEY: test-secret-key
       S3_BUCKET_NAME: test-bucket
       AWS_ACCESS_KEY_ID: testing
