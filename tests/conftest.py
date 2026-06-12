@@ -44,7 +44,7 @@ def anyio_backend():
 @pytest.fixture(scope="session")
 def test_engine():
     engine = create_async_engine(
-        settings.database_url,
+        settings.test_database_url,
         poolclass=NullPool,
     )
     return engine
