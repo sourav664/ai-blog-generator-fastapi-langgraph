@@ -17,6 +17,9 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore")
     
+    openai_api_key: SecretStr
+    google_api_key: SecretStr
+    groq_api_key: SecretStr
     database_url: str 
     migration_database_url: str
     

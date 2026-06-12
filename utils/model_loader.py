@@ -19,6 +19,7 @@ from langchain_openai import ChatOpenAI
 from langchain_groq import ChatGroq
 from logger import GLOBAL_LOGGER as log
 from exception.custom_exception import BlogGeneratorException
+from config import settings
 
 
 class ApiKeyManager:
@@ -30,9 +31,9 @@ class ApiKeyManager:
         load_dotenv()
 
         self.api_keys = {
-            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
-            "GOOGLE_API_KEY": os.getenv("GOOGLE_API_KEY"),
-            "GROQ_API_KEY": os.getenv("GROQ_API_KEY"),
+            "OPENAI_API_KEY": settings.OPENAI_API_KEY,
+            "GOOGLE_API_KEY": settings.GOOGLE_API_KEY,
+            "GROQ_API_KEY": settings.GROQ_API_KEY,
         }
 
         log.info("Initializing ApiKeyManager")

@@ -11,12 +11,12 @@ from logging.config import fileConfig
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 
-
+import schemas.models
 from alembic import context
 
 from config import settings
 
-from schemas import models # noqa: F401
+
 
 from database import Base
 
