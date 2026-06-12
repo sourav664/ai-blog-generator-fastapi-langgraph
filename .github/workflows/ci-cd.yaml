@@ -78,7 +78,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ secrets.SERVICE_NAME }} \
-          --image asia-south1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }} \
+          --image asia-south1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.REPOSITORY_NAME }}/app:${{ github.sha }} \
           --region asia-south1 \
           --platform managed \
           --allow-unauthenticated \
