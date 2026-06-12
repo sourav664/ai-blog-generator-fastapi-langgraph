@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     groq_api_key: SecretStr | None = None
     database_url: str 
     migration_database_url: str
-    test_database_url: str
+    test_database_url: str | None = None
     
     secret_key: SecretStr
     algorithm: str = "HS256"
