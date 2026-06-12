@@ -1,0 +1,54 @@
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 401 Unauthorized"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/blogs/af38a6ea-d26f-4e05-adc8-707e115302b0/publish "HTTP/1.1 200 OK"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/51f4f98e-07ab-4356-876a-ae5e5fbd366d/publish "HTTP/1.1 403 Forbidden"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: PUT http://test/api/blogs/73ad5c69-6e62-44f4-adcf-ecb7eaed82ff "HTTP/1.1 200 OK"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: PUT http://test/api/blogs/04205cbf-7446-4c1d-9811-615e3c4af197 "HTTP/1.1 403 Forbidden"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: DELETE http://test/api/blogs/12fd6de1-db5a-4f60-bf9c-70e8d271af91 "HTTP/1.1 204 No Content"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: GET http://test/api/blogs "HTTP/1.1 200 OK"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/blogs/b04f02a1-9bbf-4712-8adc-de1f316c47cf/publish "HTTP/1.1 200 OK"
+HTTP Request: GET http://test/api/blogs/published "HTTP/1.1 200 OK"
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/generate "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/blogs/cebecc4e-4f2c-485c-b668-957af9b01614/like "HTTP/1.1 200 OK"
+HTTP Request: POST http://test/api/blogs/cebecc4e-4f2c-485c-b668-957af9b01614/like "HTTP/1.1 200 OK"

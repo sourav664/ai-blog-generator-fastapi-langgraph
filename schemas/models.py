@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database.database import Base
+from database import Base
 
 
 class Task(BaseModel):
@@ -184,7 +184,10 @@ class GeneratedBlog(Base):
     is_published: Mapped[bool] = mapped_column(default=False)
     likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     
-    author: Mapped[User] = relationship(foreign_keys=[user_id])
+    author: Mapped[User] = relationship(
+                                    foreign_keys=[user_id],
+                                    back_populates="posts"            # ← "posts" is the attr name on User
+                                )
     
     images_rel: Mapped[list["BlogImage"]] = relationship(
     back_populates="blog",

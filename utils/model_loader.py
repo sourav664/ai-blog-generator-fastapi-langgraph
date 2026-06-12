@@ -93,7 +93,8 @@ class ModelLoader:
         """
         try:
             llm_block = self.config["llm"]
-            provider_key = os.getenv("LLM_PROVIDER", "openai")
+            llm_configuration = llm_block["llm-config"]
+            provider_key = llm_configuration.get("LLM_PROVIDER", "openai")
 
             if provider_key not in llm_block:
                 log.error("LLM provider not found in configuration", provider=provider_key)
@@ -157,7 +158,8 @@ class ModelLoader:
         """
         try:
             llm_block = self.config["llm"]
-            provider_key = os.getenv("IMAGE_PROVIDER", "openai")
+            llm_configuration = llm_block["llm-config"]
+            provider_key = llm_configuration.get("IMAGE_PROVIDER", "openai")
 
             if provider_key not in llm_block:
                 log.error("Image provider not found in configuration", provider=provider_key)
@@ -208,7 +210,9 @@ class ModelLoader:
             BlogGeneratorException
         """
         attempt = 0
-        quality = os.getenv("IMAGE_QUALITY", "medium")
+        llm_block = self.config["llm"]
+        llm_configuration = llm_block["llm-config"]
+        quality = llm_configuration.get("IMAGE_QUALITY", "medium")
 
         while attempt < retries:
             try:

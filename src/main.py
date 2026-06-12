@@ -43,7 +43,7 @@ os.makedirs("images", exist_ok=True)
 templates = Jinja2Templates(directory="templates")
 
 app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
+# app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 app.include_router(blogs.router, prefix="/api/blogs", tags=["blogs"])
 
 
@@ -292,3 +292,5 @@ async def validation_exception_handler(
         },
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
     )
+    
+    

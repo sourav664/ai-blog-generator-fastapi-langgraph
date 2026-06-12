@@ -390,17 +390,10 @@ Avoid:
 
 Insert placeholders EXACTLY as:
 
-[[IMAGE_1]]
-[[IMAGE_2]]
-[[IMAGE_3]]
-[[IMAGE_4]]
-[[IMAGE_5]]
-
-Only use the placeholders that are actually needed.
-
-Place each placeholder immediately after the section where the image provides the most value.
-
-Distribute images naturally throughout the article.
+- Insert placeholders EXACTLY as:
+  [[IMAGE_1]], [[IMAGE_2]], [[IMAGE_3]],  [[IMAGE_4]],  [[IMAGE_5]]
+- Place them at the most relevant positions in the Markdown content.
+- Do NOT cluster all images in one place; distribute logically.
 
 7. If NO images are needed:
 

@@ -100,6 +100,7 @@ class GeneratedBlogResponse(BaseModel):
     user_id: int
     created_at: datetime
     is_published: bool
+    likes: int
     author: UserPublic
     description: str
     content_without_title: str

@@ -265,3 +265,36 @@ async def test_get_published_blogs(mock_generate_blog, client: AsyncClient):
 
     assert data["total"] >= 1
     assert data["blogs"][0]["is_published"] is True
+
+
+@pytest.mark.anyio
+@patch("src.routers.blogs.generate_blog")
+async def test_like_blog_success(mock_generate_blog, client: AsyncClient):
+    mock_generate_blog.return_value = MOCK_BLOG_RESULT
+
+    await create_test_user(client)
+    token = await login_user(client)
+    headers = auth_header(token)
+
+    response = await client.post(
+        "/api/blogs/generate",
+        json={"topic": "Blog to Like"},
+        headers=headers,
+    )
+
+    blog_id = response.json()["blog_id"]
+
+    # Initial likes should be 0
+    assert response.json()["likes"] == 0
+
+    # Like the blog
+    response = await client.post(f"/api/blogs/{blog_id}/like")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["likes"] == 1
+
+    # Like the blog again
+    response = await client.post(f"/api/blogs/{blog_id}/like")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["likes"] == 2

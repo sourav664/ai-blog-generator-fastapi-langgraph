@@ -4,21 +4,24 @@ import mimetypes
 from pathlib import Path
 from typing import Annotated
 
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
 from schemas import models
 from src.auth import CurrentUser
 from config import settings
-from database import get_db
+from database import get_db, AsyncSessionLocal, get_session_maker
 from schemas import BlogGenerateRequest, GeneratedBlogResponse, PaginatedBlogsResponse, BlogUpdateRequest
 from schemas.models import GeneratedBlog
 
 # This is an async wrapper for the synchronous langgraph run
 from fastapi.concurrency import run_in_threadpool
 from workflows.blog_generator_workflow import generate_blog
+
+
 
 router = APIRouter()
 
@@ -27,8 +30,14 @@ async def generate_blog_endpoint(
     request: BlogGenerateRequest,
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
+    session_maker: Annotated[async_sessionmaker[AsyncSession], Depends(get_session_maker)],
 ):
     try:
+        # 1. Capture user ID and rollback/end the current transaction before starting the long-running task
+        user_id = current_user.id
+        await db.rollback()
+        await db.close()  # Close the session to release the DB connection to the pool during the long LLM generation
+
         # Run the heavy langgraph workflow in a threadpool so we don't block the async event loop
         result = await run_in_threadpool(generate_blog, request.topic)
         
@@ -46,47 +55,68 @@ async def generate_blog_endpoint(
             
         images_json = json.dumps([spec["filename"] for spec in image_specs] if image_specs else [])
         
-        new_blog = models.GeneratedBlog(
-            blog_id=str(uuid.uuid4()),
-            title=title,
-            content=final_md,
-            images=images_json,
-            user_id=current_user.id,
-            is_published=False
-        )
-        db.add(new_blog)
-        
-        await db.flush()
-        
-        # Save images to database
+        # 2. PRE-READ IMAGES FROM DISK FIRST (No database connection is idle here)
         images_dir = Path("images")
+        prepared_images = []
+        
         for spec in image_specs:
             filename = spec.get("filename")
             if not filename:
                 continue
+            
             file_path = images_dir / filename
             if file_path.exists():
                 mime_type, _ = mimetypes.guess_type(filename)
                 if not mime_type:
                     mime_type = "application/octet-stream"
                 
+                # Perform the heavy disk read operations beforehand
                 image_data = file_path.read_bytes()
+                prepared_images.append({
+                    "filename": filename,
+                    "data": image_data,
+                    "content_type": mime_type,
+                    "file_path": file_path
+                })
+                
+        # 3. OPEN DB TRANSACTION AND EXECUTE RAPIDLY
+        blog_uuid = str(uuid.uuid4())
+        async with session_maker() as new_db:
+            new_blog = models.GeneratedBlog(
+                blog_id=blog_uuid,
+                title=title,
+                content=final_md,
+                images=images_json,
+                user_id=user_id,
+                is_published=False
+            )
+            new_db.add(new_blog)
+            
+            # Flush to register parent ID safely
+            await new_db.flush()
+            
+            # Add pre-read images to session instantly with zero disk lag
+            for img in prepared_images:
                 new_image = models.BlogImage(
                     blog_id=new_blog.blog_id,
-                    filename=filename,
-                    data=image_data,
-                    content_type=mime_type
+                    filename=img["filename"],
+                    data=img["data"],
+                    content_type=img["content_type"]
                 )
-                db.add(new_image)
-                
-                try:
-                    file_path.unlink()
-                except Exception as e:
-                    import logging
-                    logging.warning(f"Failed to delete {file_path}: {e}")
+                new_db.add(new_image)
 
-        await db.commit()
-        await db.refresh(new_blog, attribute_names=["author"])
+            await new_db.commit()
+            await new_db.refresh(new_blog, attribute_names=["author"])
+        
+        # 4. CLEAN UP FILES POST-COMMIT
+        # If file deletion fails, it won't crash or corrupt your database transaction
+        for img in prepared_images:
+            try:
+                img["file_path"].unlink()
+            except Exception as e:
+                import logging
+                logging.warning(f"Failed to delete {img['file_path']}: {e}")
+         
         return new_blog
     except Exception as e:
         
@@ -100,7 +130,7 @@ async def generate_blog_endpoint(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="Failed to generate blog."
         )
 
 
@@ -166,6 +196,27 @@ async def delete_blog(
         
     await db.delete(blog)
     await db.commit()
+
+
+@router.post("/{blog_id}/like", response_model=GeneratedBlogResponse)
+async def like_blog(
+    blog_id: str,
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    result = await db.execute(
+        select(models.GeneratedBlog)
+        .options(selectinload(models.GeneratedBlog.author))
+        .where(models.GeneratedBlog.blog_id == blog_id)
+    )
+    blog = result.scalars().first()
+    
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+        
+    blog.likes = (blog.likes or 0) + 1
+    await db.commit()
+    await db.refresh(blog, attribute_names=["author"])
+    return blog
 
 
 @router.get("", response_model=PaginatedBlogsResponse)

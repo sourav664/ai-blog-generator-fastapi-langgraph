@@ -6,7 +6,10 @@ from config import settings
 
 
 engine = create_async_engine(
-   settings.database_url)
+    settings.database_url,
+    pool_pre_ping=True,
+    pool_recycle=300,
+)
 
 AsyncSessionLocal = async_sessionmaker(
     engine,
@@ -22,3 +25,7 @@ class Base(DeclarativeBase):
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
+
+async def get_session_maker():
+    return AsyncSessionLocal

@@ -1,0 +1,4 @@
+Found credentials in environment variables.
+HTTP Request: POST http://test/api/users "HTTP/1.1 201 Created"
+HTTP Request: POST http://test/api/users/token "HTTP/1.1 200 OK"
+HTTP Request: PATCH http://test/api/users/1/picture "HTTP/1.1 500 Internal Server Error"

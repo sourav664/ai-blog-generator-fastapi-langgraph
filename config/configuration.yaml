@@ -1,4 +1,11 @@
 llm:
+
+
+  llm-config:
+    LLM_PROVIDER: "openai"
+    IMAGE_PROVIDER: "openai-image"
+    IMAGE_QUALITY: "medium"
+  
   groq:
     provider: "groq"
     model_name: "deepseek-r1-distill-llama-70b"
@@ -25,4 +32,6 @@ llm:
   google-image:
      provider: "google"
      model_name: "gemini-2.5-flash-image"
-    
+
+
+  

@@ -5,28 +5,23 @@ import sys
 from pathlib import Path
 import platform
 import asyncio
+
+# Set test environment variables before importing settings
+os.environ["S3_BUCKET_NAME"] = "test-bucket"
+os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"
+os.environ["S3_ACCESS_KEY_ID"] = "testing"
+os.environ["S3_SECRET_ACCESS_KEY"] = "testing"
+os.environ["S3_REGION"] = "ap-south-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+os.environ["AWS_DEFAULT_REGION"] = "ap-south-1"
+
 from config import settings
 
 if platform.system() == "Windows":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-
-
-
-
-os.environ["S3_BUCKET_NAME"] = "test-bucket"
-os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"
-
-os.environ["S3_ACCESS_KEY_ID"] = "testing"
-os.environ["S3_SECRET_ACCESS_KEY"] = "testing"
-os.environ["S3_REGION"] = "ap-south-1"
-
-os.environ["AWS_ACCESS_KEY_ID"] = "testing"
-os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
-os.environ["AWS_DEFAULT_REGION"] = "ap-south-1"
-
-
 
 import boto3
 import pytest
@@ -115,7 +110,21 @@ async def client(
     async def override_get_db():
         yield db_session
 
+    from database import get_session_maker
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    test_async_session = async_sessionmaker(
+        bind=db_session.bind,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
+
+    async def override_get_session_maker():
+        return test_async_session
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_session_maker] = override_get_session_maker
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

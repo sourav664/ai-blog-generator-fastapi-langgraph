@@ -1,10 +1,19 @@
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+
+ENV_FILE = (
+    "/secrets/app/.env"
+    if Path("/secrets/app/.env").exists()
+    else ".env"
+)
+
+
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", 
+        env_file=ENV_FILE, 
         env_file_encoding="utf-8",
         extra="ignore")
     
