@@ -31,9 +31,9 @@ class ApiKeyManager:
         load_dotenv()
 
         self.api_keys = {
-            "OPENAI_API_KEY": settings.OPENAI_API_KEY,
-            "GOOGLE_API_KEY": settings.GOOGLE_API_KEY,
-            "GROQ_API_KEY": settings.GROQ_API_KEY,
+            "OPENAI_API_KEY": settings.openai_api_key.get_secret_value(),
+            "GOOGLE_API_KEY": settings.google_api_key.get_secret_value(),
+            "GROQ_API_KEY": settings.groq_api_key.get_secret_value(),
         }
 
         log.info("Initializing ApiKeyManager")
