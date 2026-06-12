@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 
+
 load_dotenv()
 
 if sys.platform == "win32":
@@ -35,6 +36,6 @@ async def check():
 
     await engine.dispose()
 
-asyncio.run(check())
+asyncio.run(check()) 
 
 
