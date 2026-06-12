@@ -22,6 +22,8 @@ from exception.custom_exception import BlogGeneratorException
 from config import settings
 
 
+from dotenv import load_dotenv
+
 class ApiKeyManager:
     """
     Loads and manages all environment-based API keys.
@@ -31,32 +33,33 @@ class ApiKeyManager:
         load_dotenv()
 
         self.api_keys = {
-            "OPENAI_API_KEY": settings.openai_api_key.get_secret_value(),
-            "GOOGLE_API_KEY": settings.google_api_key.get_secret_value(),
-            "GROQ_API_KEY": settings.groq_api_key.get_secret_value(),
+            "OPENAI_API_KEY": (
+                settings.openai_api_key.get_secret_value()
+                if settings.openai_api_key
+                else None
+            ),
+            "GOOGLE_API_KEY": (
+                settings.google_api_key.get_secret_value()
+                if settings.google_api_key
+                else None
+            ),
+            "GROQ_API_KEY": (
+                settings.groq_api_key.get_secret_value()
+                if settings.groq_api_key
+                else None
+            ),
         }
 
         log.info("Initializing ApiKeyManager")
 
-        # Log loaded key statuses without exposing secrets
         for key, val in self.api_keys.items():
             if val:
-                log.info(f"{key} loaded successfully from environment")
+                log.info(f"{key} loaded successfully")
             else:
-                log.warning(f"{key} is missing in environment variables")
+                log.warning(f"{key} is missing")
 
     def get(self, key: str):
-        """
-        Retrieve a specific API key.
-
-        Args:
-            key (str): Name of the API key.
-
-        Returns:
-            str | None: API key value if found.
-        """
         return self.api_keys.get(key)
-
 
 class ModelLoader:
     """
