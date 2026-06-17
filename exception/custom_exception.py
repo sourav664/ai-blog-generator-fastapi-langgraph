@@ -75,19 +75,3 @@ if __name__ == "__main__":
     # ├── SystemExit
     # ├── KeyboardInterrupt
 
-# validation error tha?
-# config missing tha?
-# LLM API down tha?
-# embedding fail hua?
-# vector DB fail hua?
-
-# 👉 Matlab: unexpected / unhandled errors ko wrap karke clean error banana.
-
-
-# Create a Python base custom exception class for a production AI/LLM pipeline that:
-# Captures file name and line number from traceback
-# Supports wrapping original exceptions
-# Extracts full traceback string
-# Accepts optional context dictionary (like user_id, model_name, db_name)
-# Formats error message in a compact, logger-friendly format
-# Includes str and repr methods
