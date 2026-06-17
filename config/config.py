@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None
     google_api_key: SecretStr | None = None
     groq_api_key: SecretStr | None = None
+    tavily_api_key: SecretStr | None = None
     database_url: str 
     migration_database_url: str
     test_database_url: str | None = None

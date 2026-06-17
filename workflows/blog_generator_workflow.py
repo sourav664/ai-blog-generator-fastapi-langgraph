@@ -18,6 +18,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_tavily import TavilySearch
+from config import settings
 
 
 
@@ -95,7 +96,7 @@ class BlogGeneratorWorker:
         try:
             self.logger.info("Searching tavily")
             tool = TavilySearch(
-                 tavily_api_key=os.getenv("TAVILY_API_KEY"),
+                 tavily_api_key=settings.tavily_api_key.get_secret_value(),
                  max_results=max_results,)
             results = tool.invoke({"query": query})
 
@@ -377,4 +378,4 @@ if __name__ == "__main__":
         GLOBAL_LOGGER.info("Blog generated successfully")
     except Exception as e:
         GLOBAL_LOGGER.error("Error generating blog", error=str(e))
-        raise BlogGeneratorException("Error generating blog")
+        raise BlogGeneratorException("Error generating blog")
