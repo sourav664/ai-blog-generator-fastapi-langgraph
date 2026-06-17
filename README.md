@@ -147,21 +147,26 @@ Creating high-quality, long-form technical blog content requires hours of resear
 ## 🏗 System Architecture
 
 ### High-Level Architecture
-
 ```mermaid
 flowchart TD
-    U([👤 User / Browser]) --> FE[Jinja2 Web UI]
+    U[User / Browser] --> FE[Jinja2 Web UI]
     U --> API[FastAPI REST API]
+
     FE --> API
-    API --> AUTH[JWT Auth Middleware]
-    AUTH --> ROUTER[/api/users /api/blogs]
-    ROUTER --> DB[(Neon PostgreSQL\nAsync SQLAlchemy)]
-    ROUTER --> WF[LangGraph Workflow\nBlog Generator]
-    WF --> TAV[🔍 Tavily Search API]
-    WF --> LLM[🧠 OpenAI GPT-4o\nGroq / Gemini]
-    WF --> IMG[🖼️ OpenAI gpt-image-2\nImage Generator]
+
+    API --> AUTH[JWT Authentication]
+    AUTH --> ROUTER[API Routers]
+
+    ROUTER --> DB[(Neon PostgreSQL)]
+    ROUTER --> WF[LangGraph Blog Generator]
+
+    WF --> TAV[Tavily Search API]
+    WF --> LLM[OpenAI GPT-4o]
+    WF --> IMG[OpenAI Image Generator]
+
     WF --> DB
-    API --> S3[(☁️ AWS S3\nProfile Images)]
+
+    API --> S3[AWS S3 Profile Images]
 
     style U fill:#6C63FF,color:#fff
     style API fill:#009688,color:#fff
@@ -1162,25 +1167,34 @@ uv run pytest -x
 
 ```mermaid
 flowchart TD
-    PUSH([👨‍💻 git push]) --> GHA[GitHub Actions Trigger\non: push]
-    GHA --> TEST[Job: test\nubuntu-latest]
-    TEST --> C[actions/checkout@v4]
-    C --> PY[setup-python@v5\nPython 3.13]
-    PY --> UV[astral-sh/setup-uv@v6\nwith cache]
-    UV --> SYNC[uv sync --locked --dev]
-    SYNC --> PYTEST[uv run pytest]
-    PYTEST -->|✅ pass| DEPLOY[Job: deploy\nneeds: test]
-    PYTEST -->|❌ fail| STOP([Pipeline Halted])
-    DEPLOY --> AUTH[google-github-actions/auth@v2\nOIDC Workload Identity]
-    AUTH --> GC[setup-gcloud@v2\nproject_id from secrets]
-    GC --> DOCKER[gcloud auth configure-docker\nasia-south1-docker.pkg.dev]
-    DOCKER --> BUILD[docker build\ntag with github.sha]
-    BUILD --> PUSH2[docker push\nArtifact Registry]
-    PUSH2 --> CLOUDRUN[gcloud run deploy\n2 vCPU · 2 GiB · 0-10 instances\n--update-secrets from Secret Manager]
 
-    style PYTEST fill:#2088FF,color:#fff
-    style CLOUDRUN fill:#4285F4,color:#fff
-    style AUTH fill:#EA4335,color:#fff
+    PUSH["Git Push"] --> GHA["GitHub Actions"]
+
+    GHA --> TEST["Test Job"]
+
+    TEST --> C["actions/checkout@v4"]
+    C --> PY["setup-python@v5<br/>Python 3.13"]
+
+    PY --> UV["setup-uv@v6"]
+    UV --> SYNC["uv sync --locked --dev"]
+    SYNC --> PYTEST["uv run pytest"]
+
+    PYTEST --> DEPLOY["Deploy Job"]
+    PYTEST --> STOP["Pipeline Halted"]
+
+    DEPLOY --> AUTH["OIDC Authentication"]
+    AUTH --> GCLOUD["Setup GCloud"]
+
+    GCLOUD --> DOCKER["Configure Docker"]
+    DOCKER --> BUILD["Build Docker Image"]
+
+    BUILD --> PUSHIMG["Push To Artifact Registry"]
+
+    PUSHIMG --> CLOUDRUN["Cloud Run Deployment"]
+
+    style PYTEST fill:#2088FF,color:#ffffff
+    style CLOUDRUN fill:#4285F4,color:#ffffff
+    style AUTH fill:#EA4335,color:#ffffff
 ```
 
 ### Pipeline Details

@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.routers import blogs, posts, users
+from src.routers import blogs, users
 from schemas import models
 from config import settings
 from database import engine, get_db
