@@ -307,7 +307,34 @@ You are a senior technical writer and developer advocate. Follow these instructi
 - Do NOT include blog title (no H1).
 - Ensure all bullets are clearly addressed.
 - Ensure output is clean Markdown and directly usable.
+- Do NOT insert any images — see rule 14.
+
+13. MATHEMATICAL EXPRESSIONS:
+
+- Use KaTeX-compatible delimiters for ALL math:
+  - Block / display math  → wrap with  $$  on its own line:
+    $$
+    E = mc^2
+    $$
+  - Inline math           → wrap with single $:
+    The loss is $\mathcal{L}(\Theta)$.
+- Do NOT use \[ ... \] or \( ... \) — those delimiters are NOT supported.
+- Do NOT use plain text like "(formula)" when a proper LaTeX expression can be used.
+
+14. NO IMAGES — CRITICAL:
+
+- Do NOT include ANY image markdown in your output. This means:
+  - No  ![alt text](URL)  syntax — not even as a placeholder.
+  - No  ![alt text](https://example.com/...)  or any fabricated URL.
+  - No  ![alt text](/images/...)  paths.
+  - No  <img>  HTML tags.
+  - No sentences like "see diagram below" that refer to an image you inserted.
+- Images are handled exclusively by a separate downstream workflow.
+  If you violate this rule, broken images will appear in the final blog.
+- If a bullet asks for a "diagram" or "figure", describe the concept
+  in words or as a Markdown table instead. Do not insert image syntax.
 """)
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -386,14 +413,57 @@ Avoid:
 * Marketing visuals
 * Images that simply repeat nearby text
 
-6. Placement rules.
+6. Placement rules — READ CAREFULLY AND FOLLOW EXACTLY.
 
-Insert placeholders EXACTLY as:
+CRITICAL RULES (violations are not acceptable):
 
-- Insert placeholders EXACTLY as:
-  [[IMAGE_1]], [[IMAGE_2]], [[IMAGE_3]],  [[IMAGE_4]],  [[IMAGE_5]]
-- Place them at the most relevant positions in the Markdown content.
-- Do NOT cluster all images in one place; distribute logically.
+  a) EACH image placeholder ([[IMAGE_1]], [[IMAGE_2]], etc.) MUST be placed
+     IMMEDIATELY AFTER the section it illustrates — right after the paragraph
+     or heading where that concept is first introduced.
+
+  b) NEVER group multiple image placeholders together in one place.
+     Every placeholder must appear in a DIFFERENT section of the blog.
+
+  c) NEVER place all (or most) placeholders at the end or bottom of the
+     content. If you find yourself inserting two or more placeholders near
+     the end, STOP and redistribute them to the correct earlier sections.
+
+  d) Spread placeholders evenly across the full length of the document.
+     If the blog has N sections and K images, aim for roughly one image
+     per (N / K) sections — not all in the last section.
+
+  e) The correct insertion point for [[IMAGE_X]] is:
+     - After the closing paragraph of the section it illustrates, AND
+     - Before the next section heading (## or ###).
+
+EXAMPLE OF CORRECT placement (3 sections, 3 images):
+
+  ## Section 1: Overview
+  ... paragraph text ...
+  [[IMAGE_1]]          <- placed here, right after Section 1 content
+
+  ## Section 2: Architecture
+  ... paragraph text ...
+  [[IMAGE_2]]          <- placed here, right after Section 2 content
+
+  ## Section 3: Results
+  ... paragraph text ...
+  [[IMAGE_3]]          <- placed here, right after Section 3 content
+
+EXAMPLE OF WRONG placement (DO NOT DO THIS):
+
+  ## Section 1
+  ...text...
+
+  ## Section 2
+  ...text...
+
+  ## Section 3
+  ...text...
+
+  [[IMAGE_1]]   <- WRONG: all images clustered at the end
+  [[IMAGE_2]]   <- WRONG
+  [[IMAGE_3]]   <- WRONG
 
 7. If NO images are needed:
 
@@ -402,7 +472,7 @@ Insert placeholders EXACTLY as:
 
 8. If images ARE needed:
 
-* Insert placeholders into the Markdown.
+* Insert placeholders into the Markdown following the rules in step 6.
 * Create an images list.
 
 For every image include:
@@ -420,7 +490,18 @@ Priority scale:
 * 5-7 = useful
 * below 5 = should generally be omitted
 
-9. Return output strictly in the following JSON format:
+9. SELF-CHECK before returning output.
+
+Before finalising your response, verify each of these:
+
+  - Every [[IMAGE_X]] appears inside its relevant section (not at the end).
+  - No two placeholders are adjacent or within the same section block.
+  - The placeholders are spread across at least K different sections
+    (where K = number of images).
+
+If any check fails, revise the placement before returning.
+
+10. Return output strictly in the following JSON format:
 
 {
 "md_with_placeholders": "",

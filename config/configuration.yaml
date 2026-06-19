@@ -4,7 +4,7 @@ llm:
   llm-config:
     LLM_PROVIDER: "openai"
     IMAGE_PROVIDER: "openai-image"
-    IMAGE_QUALITY: "medium"
+    IMAGE_QUALITY: "low"
   
   groq:
     provider: "groq"
@@ -22,7 +22,7 @@ llm:
      provider: "openai"
      model_name: "gpt-4o"
      temperature: 0
-     max_output_tokens: 8192
+     max_output_tokens: 16000
 
   openai-image:
      provider: "openai"

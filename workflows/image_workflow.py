@@ -23,7 +23,7 @@ from langchain_core.messages import get_buffer_string
 from utils.model_loader import ModelLoader
 from prompt_library.prompt_locator import DECIDE_IMAGES_SYSTEM_PROMPT
 
-from schemas.models import State, GlobalImagePlan
+from schemas.models import State, GlobalImagePlan, ImagePlacementPlan, ImagePlacementDecision
 from logger import GLOBAL_LOGGER
 from exception.custom_exception import BlogGeneratorException
 
@@ -40,7 +40,6 @@ class MergeImagesWorker:
         
     def _merge_content(self, state: State) -> dict:
         try:
-              # 🔥 ADD THIS LINE HERE
             self.logger.info("Sections after workers", sections=state.get("sections"))
 
             plan = state["plan"]
@@ -53,45 +52,121 @@ class MergeImagesWorker:
                 }
             body = "\n\n".join([md for _, md in sorted(sections, key=lambda x: x[0])]).strip()
             merged_md = f"# {plan.blog_title}\n\n{body}\n"
+
+            # Strip any external image links hallucinated by workers
+            merged_md = re.sub(r'!\[[^\]]*\]\(https?://[^)]+\)', '', merged_md)
+            merged_md = re.sub(r'\n{3,}', '\n\n', merged_md)
+
             self.logger.info("Merged content successfully")
             return {"merged_md": merged_md}
         except Exception as e:
             self.logger.error("Error merging content", error=str(e))
             raise BlogGeneratorException("Error merging content")
-        
-    
+
     def _decide_images(self, state: State) -> dict:
         try:
             self.logger.info("Deciding on images")
-            planner = self.llm.with_structured_output(GlobalImagePlan)
+            planner = self.llm.with_structured_output(ImagePlacementPlan)
             merged_md = state["merged_md"]
             plan = state["plan"]
-            image_plan = planner.invoke(
-                            [
-                                SystemMessage(content=str(DECIDE_IMAGES_SYSTEM_PROMPT)),
-                                HumanMessage(
-                                    content=(
-                                        f"Blog kind: {plan.blog_kind}\n"
-                                        f"Topic: {state['topic']}\n\n"
-                                        "Insert placeholders + propose image prompts.\n\n"
-                                        f"{merged_md}"
-                                    )
-                                ),
-                            ]
+
+            # Send only the heading outline to the LLM (tiny payload).
+            # This keeps prompt+response tokens well within the model limit
+            # regardless of how long the blog is.
+            heading_lines = [
+                line.strip()
+                for line in merged_md.splitlines()
+                if line.strip().startswith("## ") or line.strip().startswith("### ")
+            ]
+            outline = "\n".join(f"{i+1}. {h}" for i, h in enumerate(heading_lines))
+
+            image_plan: ImagePlacementPlan = planner.invoke(
+                [
+                    SystemMessage(content=str(DECIDE_IMAGES_SYSTEM_PROMPT)),
+                    HumanMessage(
+                        content=(
+                            f"Blog kind: {plan.blog_kind}\n"
+                            f"Topic: {state['topic']}\n\n"
+                            "Blog section outline (headings only):\n"
+                            f"{outline}\n\n"
+                            "Decide which sections need an image and return placement decisions."
                         )
-            
-            self.logger.info("Decided on images successfully")
+                    ),
+                ]
+            )
+
+            # Python-side placeholder insertion.
+            # Find the heading in merged_md and insert the placeholder tag
+            # at the end of that section (before the next heading or EOF).
+            md_lines = merged_md.splitlines(keepends=True)
+            image_specs = []
+
+            for decision in image_plan.images:
+                target_heading = decision.after_heading.strip()
+                placeholder_tag = f"[[{decision.placeholder}]]"
+
+                # Fuzzy match: strip the leading ## / ### for comparison
+                def _heading_text(line: str) -> str:
+                    return line.strip().lstrip("#").strip()
+
+                target_text = _heading_text(target_heading)
+
+                insert_after = -1
+                for idx, line in enumerate(md_lines):
+                    stripped = line.strip()
+                    if not (stripped.startswith("## ") or stripped.startswith("### ")):
+                        continue
+                    # Exact match first
+                    if stripped == target_heading:
+                        match_idx = idx
+                    # Fallback: compare without the ## prefix
+                    elif _heading_text(stripped) == target_text:
+                        match_idx = idx
+                    else:
+                        continue
+
+                    # Scan forward to the end of this section
+                    for end_idx in range(match_idx + 1, len(md_lines)):
+                        next_line = md_lines[end_idx].strip()
+                        if next_line.startswith("## ") or next_line.startswith("### "):
+                            insert_after = end_idx
+                            break
+                    else:
+                        insert_after = len(md_lines)  # end of file
+                    break
+
+                if insert_after == -1:
+                    # Heading not found — append at end as fallback
+                    self.logger.warning(
+                        "after_heading not found in markdown, appending at end",
+                        after_heading=target_heading,
+                    )
+                    insert_after = len(md_lines)
+
+                md_lines.insert(insert_after, f"\n{placeholder_tag}\n")
+
+                image_specs.append({
+                    "placeholder": placeholder_tag,
+                    "filename": decision.filename,
+                    "alt": decision.alt,
+                    "caption": decision.caption,
+                    "prompt": decision.prompt,
+                })
+
+            md_with_placeholders = "".join(md_lines)
+
+            self.logger.info(
+                "Decided on images successfully",
+                image_count=len(image_specs),
+            )
             return {
-                    "md_with_placeholders": image_plan.md_with_placeholders,
-                    "image_specs": [img.model_dump() for img in image_plan.images],
-                }
+                "md_with_placeholders": md_with_placeholders,
+                "image_specs": image_specs,
+            }
 
         except Exception as e:
             self.logger.error("Error deciding on images", error=str(e))
             raise BlogGeneratorException("Error deciding on images")
-        
-        
-        
     def _generate_image_bytes(self, prompt: str) -> bytes:
         """
         Returns raw image bytes generated 

@@ -78,6 +78,29 @@ class GlobalImagePlan(BaseModel):
     images: List[ImageSpec] = Field(default_factory=list)
 
 
+class ImagePlacementDecision(BaseModel):
+    """Lightweight: where to place one image, without echoing back the blog."""
+    placeholder: str = Field(..., description="e.g. IMAGE_1")
+    after_heading: str = Field(
+        ...,
+        description=(
+            "The EXACT heading text (## or ###) after whose section content "
+            "this image should be inserted. Must be a verbatim substring of the blog."
+        ),
+    )
+    filename: str = Field(..., description="e.g. xgboost_overview.png")
+    alt: str
+    caption: str
+    prompt: str = Field(..., description="Detailed prompt for the image generation model.")
+    purpose: str = Field(..., description="One sentence: why this image aids understanding.")
+    image_type: str = Field("diagram", description="diagram|flowchart|architecture|sequence|table|workflow|other")
+    priority: int = Field(..., ge=1, le=10)
+
+
+class ImagePlacementPlan(BaseModel):
+    """Returned by the image-decision LLM — no full markdown echo required."""
+    images: List[ImagePlacementDecision] = Field(default_factory=list)
+
 
 class State(TypedDict):
     topic: str
@@ -224,7 +247,7 @@ class BlogImage(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     blog_id: Mapped[str] = mapped_column(String(50), ForeignKey("generated_blogs.blog_id", ondelete="CASCADE"), index=True, nullable=True)
-    filename: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
+    filename: Mapped[str] = mapped_column(String(200), index=True, nullable=False)
     data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     content_type: Mapped[str] = mapped_column(String(50), nullable=False)
     

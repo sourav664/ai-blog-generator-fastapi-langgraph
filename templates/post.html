@@ -67,9 +67,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // Configure marked to use KaTeX
     marked.use(markedKatex({ throwOnError: false }));
 
+    // Normalise legacy LaTeX delimiters (\[...\] and \(...\)) to KaTeX-compatible $$ / $
+    function normaliseMathDelimiters(md) {
+        // Block math: \[ ... \] → $$ ... $$
+        md = md.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
+        // Inline math: \( ... \) → $ ... $
+        md = md.replace(/\\\(([\s\S]*?)\\\)/g, (_, inner) => `$${inner}$`);
+        return md;
+    }
+
     document.querySelectorAll('.markdown-content').forEach(el => {
         let md = el.getAttribute('data-markdown') || el.textContent;
         md = md.replace(/\]\(images\//g, '](/images/');
+        md = normaliseMathDelimiters(md);
         el.innerHTML = marked.parse(md);
     });
 });

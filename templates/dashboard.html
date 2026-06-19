@@ -5,7 +5,15 @@
     <form id="generateBlogForm">
         <div class="mb-3">
             <label for="topic" class="form-label">Blog Topic</label>
-            <input type="text" class="form-control" id="topic" name="topic" required placeholder="e.g. Gradient Boosting">
+            <textarea
+                class="form-control"
+                id="topic"
+                name="topic"
+                required
+                placeholder="e.g. Gradient Boosting — or paste a detailed prompt here"
+                rows="1"
+                style="resize: none; overflow: hidden; min-height: 42px; max-height: 260px; line-height: 1.5; transition: height 0.1s ease;"
+            ></textarea>
         </div>
         <button type="submit" class="btn btn-primary" id="generateBtn">Generate Blog</button>
     </form>
@@ -31,11 +39,32 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- KaTeX for math rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@5.0.0/lib/index.umd.js"></script>
+
 <script type="module">
     import { getToken } from '/static/js/auth.js';
     import { showModal, getErrorMessage } from '/static/js/utils.js';
 
+    // ── Auto-grow textarea ──────────────────────────────────────────────
+    const topicInput = document.getElementById("topic");
+    function autoResize() {
+        topicInput.style.height = "auto";
+        topicInput.style.height = Math.min(topicInput.scrollHeight, 260) + "px";
+    }
+    topicInput.addEventListener("input", autoResize);
+    // Also handle paste events
+    topicInput.addEventListener("paste", () => setTimeout(autoResize, 0));
+    // ────────────────────────────────────────────────────────────────────
+
+    // Configure marked to use KaTeX
+    marked.use(markedKatex({ throwOnError: false }));
+
     const generateForm = document.getElementById("generateBlogForm");
+
     const generateBtn = document.getElementById("generateBtn");
     const loadingIndicator = document.getElementById("loadingIndicator");
     const previewSection = document.getElementById("previewSection");
@@ -80,8 +109,12 @@
                 currentBlogId = data.blog_id;
                 
                 let content = data.content;
+                // Normalise legacy LaTeX delimiters to KaTeX-compatible $$ / $
+                content = content.replace(/\\\[([\\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
+                content = content.replace(/\\\(([\\s\S]*?)\\\)/g, (_, inner) => `$${inner}$`);
                 markdownPreview.innerHTML = marked.parse(content);
                 previewSection.classList.remove("d-none");
+
             } else {
                 const error = await response.json();
                 document.getElementById("errorMessage").textContent = getErrorMessage(error);
